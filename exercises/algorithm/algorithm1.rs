@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -43,7 +42,9 @@ impl<T> LinkedList<T> {
             end: None,
         }
     }
+}
 
+impl<T: std::cmp::PartialOrd + Clone> LinkedList<T> {
     pub fn add(&mut self, obj: T) {
         let mut node = Box::new(Node::new(obj));
         node.next = None;
@@ -69,15 +70,40 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+	pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> LinkedList<T> {
+        let mut ret = Self::new();
+
+        let mut a_node = list_a.start;
+        let mut b_node = list_b.start;
+
+        while a_node.is_some() || b_node.is_some() {
+            match (a_node, b_node) {
+                (None, None) => break,
+                (Some(a_ptr), None) => {
+                    ret.add(unsafe { (*a_ptr.as_ptr()).val.clone() });
+                    a_node = unsafe { (*a_ptr.as_ptr()).next };
+                }
+                (None, Some(b_ptr)) => {
+                    ret.add(unsafe { (*b_ptr.as_ptr()).val.clone() });
+                    b_node = unsafe { (*b_ptr.as_ptr()).next };
+                }
+                (Some(a_ptr), Some(b_ptr)) => {
+                    let a_val = unsafe { (*a_ptr.as_ptr()).val.clone() };
+                    let b_val = unsafe { (*b_ptr.as_ptr()).val.clone() };
+
+                    if a_val < b_val {
+                        ret.add(a_val);
+                        a_node = unsafe { (*a_ptr.as_ptr()).next };
+                    } else {
+                        ret.add(b_val);
+                        b_node = unsafe { (*b_ptr.as_ptr()).next };
+                    }
+                }
+            }
         }
-	}
+
+        ret
+    }
 }
 
 impl<T> Display for LinkedList<T>
